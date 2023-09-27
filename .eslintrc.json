@@ -1,3 +1,10 @@
 {
-	"extends": ["willclarktech"]
+	"extends": ["willclarktech"],
+	"rules": {
+		"@typescript-eslint/member-ordering": "off",
+		"@typescript-eslint/no-floating-promises": "off",
+		"@typescript-eslint/no-misused-promises": "off",
+		"functional/prefer-immutable-types": "off",
+		"functional/type-declaration-immutability": "off"
+	}
 }
