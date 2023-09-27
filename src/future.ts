@@ -1,4 +1,4 @@
-import { Monad } from "./monad";
+import type { Monad } from "./monad";
 
 enum FutureState {
 	Pending,
@@ -29,9 +29,12 @@ type Reject = (error: Error) => void;
 type Executor<A> = (resolve: Resolve<A>, reject: Reject) => void;
 
 export class Future<A> implements Monad<A> {
-	private onFulfilledCallbacks: Resolve<A>[] = [];
-	private onRejectedCallbacks: Reject[] = [];
+	// eslint-disable-next-line functional/prefer-readonly-type
+	private readonly onFulfilledCallbacks: Resolve<A>[] = [];
+	// eslint-disable-next-line functional/prefer-readonly-type
+	private readonly onRejectedCallbacks: Reject[] = [];
 
+	// eslint-disable-next-line functional/prefer-readonly-type
 	private constructor(public data: FutureData<A>) {}
 
 	private static pending<B>(): Future<B> {
@@ -129,7 +132,7 @@ export class Future<A> implements Monad<A> {
 
 	public fmap = this.then.bind(this);
 
-	public static pure = Future.resolve;
+	public static pure = Future.resolve.bind(Future);
 
 	public apply<B>(fab: Future<(a: A) => B>): Future<B> {
 		const future = Future.pending<B>();

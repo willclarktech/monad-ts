@@ -1,13 +1,14 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { List } from "./list";
 
 describe("List", () => {
 	it("pure creates a List from a value", () => {
-		// @ts-expect-error
+		// @ts-expect-error Checking pure types input correctly
 		const listStringBad: List<string> = List.pure(21);
 		const listString: List<string> = List.pure("21");
 		expect(listString).toBeTruthy();
 
-		// @ts-expect-error
+		// @ts-expect-error Checking pure types input correctly
 		const listNumberBad: List<number> = List.pure("123");
 		const listNumber: List<number> = List.pure(123);
 		expect(listNumber).toBeTruthy();

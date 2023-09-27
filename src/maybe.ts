@@ -1,4 +1,4 @@
-import { Monad } from "./monad";
+import type { Monad } from "./monad";
 
 interface Nothing {
 	readonly isNothing: true;
@@ -41,7 +41,7 @@ export class Maybe<A> implements Monad<A> {
 		return this.isJust() ? Maybe.just(f(this.data.value)) : Maybe.nothing();
 	}
 
-	public static pure = Maybe.just;
+	public static pure = Maybe.just.bind(Maybe);
 
 	public apply<B>(fab: Maybe<(a: A) => B>): Maybe<B> {
 		return fab.isJust() && this.isJust()

@@ -1,4 +1,4 @@
-import { Monad } from "./monad";
+import type { Monad } from "./monad";
 
 export class List<A> implements Monad<A> {
 	private constructor(private readonly data: readonly A[]) {}

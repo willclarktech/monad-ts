@@ -1,7 +1,7 @@
 import { Future } from "./future";
 import { List } from "./list";
 import { Maybe } from "./maybe";
-import { Functor } from "./monad";
+import type { Functor } from "./monad";
 
 // NOTE: This isn't that useful because TS doesn't support kind polymorphism
 export type NaturalTransformation<
