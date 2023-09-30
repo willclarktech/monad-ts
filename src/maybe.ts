@@ -1,61 +1,75 @@
-import type { Monad } from "./monad";
+import type { IMonad } from "./monad";
+import type { Writable } from "./util";
 
-interface Nothing {
+export type Nothing = {
 	readonly isNothing: true;
-}
+};
 
-interface Just<A> {
+export type Just<A> = {
 	readonly isNothing: false;
 	readonly value: A;
+};
+
+export type Maybe<A> = Nothing | Just<A>;
+
+export interface IMaybe<A, B>
+	extends IMonad<
+		A,
+		Maybe<A>,
+		Maybe<Maybe<A>>,
+		B,
+		Maybe<B>,
+		Maybe<(a: A) => B>
+	> {
+	readonly nothing: <C>() => Maybe<C>;
+	readonly just: <C>(c: C) => Maybe<C>;
+	readonly isNothing: <C>(c: Maybe<C>) => c is Nothing;
+	readonly isJust: <C>(c: Maybe<C>) => c is Just<C>;
+	/** Impure but useful */
+	readonly fromJust: (a: Maybe<A>) => A;
+	// Functor
+	readonly fmap: <C>(fab: (a: A) => C, m: Maybe<A>) => Maybe<C>;
+	// Applicative
+	readonly pure: <C>(a: C) => Maybe<C>;
+	readonly apply: (fab: Maybe<(a: A) => B>, m: Maybe<A>) => Maybe<B>;
+	// Monad
+	readonly join: <C>(mma: Maybe<Maybe<C>>) => Maybe<C>;
+	readonly bind: (m: Maybe<A>, fab: (a: A) => Maybe<B>) => Maybe<B>;
 }
 
-type MaybeData<A> = Nothing | Just<A>;
+type MaybeFactory = { new <A, B>(): IMaybe<A, B> };
 
-export class Maybe<A> implements Monad<A> {
-	private constructor(public readonly data: MaybeData<A>) {}
-
-	public static nothing<B>(): Maybe<B> {
-		return new Maybe({ isNothing: true });
-	}
-
-	public static just<B>(value: B): Maybe<B> {
-		return new Maybe({ isNothing: false, value });
-	}
-
-	public isNothing(): this is { readonly data: Nothing } {
-		return this.data.isNothing;
-	}
-
-	public isJust(): this is { readonly data: Just<A> } {
-		return !this.data.isNothing;
-	}
-
-	public fromJust(): A {
-		if (this.isJust()) {
-			return this.data.value;
+export const Maybe: MaybeFactory = function <A, B>(
+	this: Writable<IMaybe<A, B>>,
+): void {
+	this.nothing = <C>(): Maybe<C> => ({ isNothing: true });
+	this.just = <C>(c: C): Maybe<C> => ({ isNothing: false, value: c });
+	this.isNothing = <C>(c: Maybe<C>): c is Nothing => c.isNothing;
+	this.isJust = <C>(c: Maybe<C>): c is Just<C> => !c.isNothing;
+	this.fromJust = (a: Maybe<A>): A => {
+		if (this.isNothing(a)) {
+			throw new Error("Cannot retrieve value from Nothing");
 		}
-		throw new Error("Cannot retrieve value from Nothing");
-	}
+		return a.value;
+	};
 
-	public static empty = Maybe.nothing.bind(Maybe);
+	// Functor
+	this.fmap = <C>(fab: (a: A) => C, m: Maybe<A>): Maybe<C> =>
+		this.isJust(m) ? this.just(fab(m.value)) : this.nothing();
 
-	public fmap<B>(f: (a: A) => B): Maybe<B> {
-		return this.isJust() ? Maybe.just(f(this.data.value)) : Maybe.nothing();
-	}
+	// Applicative
+	this.pure = this.just;
+	this.apply = <C>(fab: Maybe<(a: A) => C>, m: Maybe<A>): Maybe<C> =>
+		this.isJust(fab) && this.isJust(m)
+			? this.just(fab.value(m.value))
+			: this.nothing();
 
-	public static pure = Maybe.just.bind(Maybe);
+	// Monad
+	this.join = <C>(m: Maybe<Maybe<C>>): Maybe<C> =>
+		this.isJust(m) ? m.value : this.nothing();
+	this.bind = (m: Maybe<A>, fab: (a: A) => Maybe<B>): Maybe<B> =>
+		this.join(this.fmap(fab, m));
 
-	public apply<B>(fab: Maybe<(a: A) => B>): Maybe<B> {
-		return fab.isJust() && this.isJust()
-			? Maybe.just(fab.data.value(this.data.value))
-			: Maybe.nothing();
-	}
-
-	public static join<B>(maybe: Maybe<Maybe<B>>): Maybe<B> {
-		return maybe.isJust() ? maybe.data.value : Maybe.nothing();
-	}
-
-	public bind<B>(f: (a: A) => Maybe<B>): Maybe<B> {
-		return Maybe.join(this.fmap(f));
-	}
-}
+	// NOTE: TS apparently has trouble typing constructible functions
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+} as any as MaybeFactory;
