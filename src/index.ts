@@ -4,3 +4,4 @@ export * from "./maybe";
 export * from "./monad";
 export * from "./monoid";
 export * from "./natural-transformation";
+export * from "./writer";
