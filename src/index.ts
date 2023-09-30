@@ -1,4 +1,5 @@
 export * from "./future";
+export * from "./io";
 export * from "./list";
 export * from "./maybe";
 export * from "./monad";
