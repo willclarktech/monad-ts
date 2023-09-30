@@ -1,6 +1,7 @@
 import type { Monad } from "./monad";
+import type { Monoid } from "./monoid";
 
-export class List<A> implements Monad<A> {
+export class List<A> implements Monoid<A>, Monad<A> {
 	private constructor(private readonly data: readonly A[]) {}
 
 	public static nil<B>(): List<B> {
@@ -35,6 +36,12 @@ export class List<A> implements Monad<A> {
 
 	public map<B>(f: (a: A) => B): List<B> {
 		return new List(this.data.map(f));
+	}
+
+	public static empty = List.nil.bind(List);
+
+	public concat(list: List<A>): List<A> {
+		return new List([...this.data, ...list.data]);
 	}
 
 	public fmap = this.map.bind(this);

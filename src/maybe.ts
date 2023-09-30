@@ -37,6 +37,8 @@ export class Maybe<A> implements Monad<A> {
 		throw new Error("Cannot retrieve value from Nothing");
 	}
 
+	public static empty = Maybe.nothing.bind(Maybe);
+
 	public fmap<B>(f: (a: A) => B): Maybe<B> {
 		return this.isJust() ? Maybe.just(f(this.data.value)) : Maybe.nothing();
 	}

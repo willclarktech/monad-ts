@@ -130,6 +130,8 @@ export class Future<A> implements Monad<A> {
 		return future;
 	}
 
+	public static empty = Future.pending.bind(Future);
+
 	public fmap = this.then.bind(this);
 
 	public static pure = Future.resolve.bind(Future);
